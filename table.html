@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>메인 페이지</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            list-style: none;
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            padding: 50px;
+        }
+
+        #tableCustom {
+            width: 100%;
+            font-size: 14px;
+        }
+        #tableCustom *::-webkit-scrollbar {
+            width: 5px;
+        }
+        #tableCustom *::-webkit-scrollbar-thumb {
+            background-color: #aaa;
+            border-radius: 10px;
+            border: 2px solid transparent;
+        }
+        #tableCustom *::-webkit-scrollbar-track {
+            background-color: #eee;
+        }
+
+        [data-id="tableWrap"] {
+            height: 400px;
+            overflow-y: auto;
+            
+            border-top: 1px solid #333;
+            border-bottom: 2px solid #ccc;
+        }
+        [data-id="tableWrap"] thead {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            background: #fff;
+            box-shadow: inset 0 -1px 0 #ccc;
+        }
+
+        table {
+            width: 100%;
+            /* border-top: 1px solid #333;
+            border-bottom: 2px solid #ccc; */
+            border-collapse: collapse;
+            color: #333;
+        }
+        table tr td {
+            padding: 12px;
+        }
+        table [data-align="center"] {
+            text-align: center;
+        }
+        table [data-align="center"] > * {
+            margin: 0 auto;
+        }
+        table [data-align="right"] {
+            text-align: right;
+        }
+        table thead {
+            border-bottom: 1px solid #ccc;
+        }
+        table thead td {
+            position: relative;
+        }
+        table thead td[data-sort="true"] {
+            cursor: pointer;
+        }
+        table thead td[data-sort="true"]::after {
+            content: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 -960 960 960" fill="%23aaa"><path d="M320-440v-287L217-624l-57-56 200-200 200 200-57 56-103-103v287h-80ZM600-80 400-280l57-56 103 103v-287h80v287l103-103 57 56L600-80Z"/></svg>');
+            margin-left: 10px;
+            position: absolute;
+            opacity: .7;
+        }
+        table thead td:not(:last-child)::before {
+            content: "";
+            width: 1px;
+            height: 60%;
+            border-right: 1px solid #eee;
+            position: absolute;
+            right: 5px;
+            bottom: 20%;
+        }
+
+        /* tbody {
+            height: 500px;
+            overflow-y: scroll;
+            display: block;
+        }
+        tbody tr {
+            display: table-row;
+        }
+        tbody td {
+            display: table-cell;
+        } */
+
+        table tbody tr {
+            border-bottom: 1px solid #eee;
+        }
+        table tbody tr:nth-child(even) {
+            background-color: #fcfcfc;
+        }
+        table button[title="상세보기"] {
+            border: 0;
+            background: 0;
+            cursor: pointer;
+        }
+
+        [data-id="search"] {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 5px;
+            gap: 5px;
+            width: 400px;
+            height: 35px;
+        }
+        [data-id="searchBox"] {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        [data-id="searchBox"] input[type="text"] {
+            width: 100%;
+            height: 100%;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            padding: 0 10px;
+            color: #555;
+            outline: 0;
+        }
+        [data-id="searchBox"] button {
+            border: 0;
+            background: none;
+            position: absolute;
+            right: 10px;
+        }
+
+        input[type="checkbox"] {
+            display: none;
+        }
+        input[type="checkbox"] + label{
+            width: 15px;
+            height: 15px;
+            border: 1px solid #aaa;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 2px;
+            margin: 0 auto;
+        }
+        input[type="checkbox"]:checked + label::after {
+            content:'✔';
+            color: deepskyblue;
+        }
+
+        [data-id="bottom"] {
+            margin-top: 10px;
+        }
+        [data-id="total"] span {
+            font-weight: bold;
+            font-size: larger;
+        }
+        [data-id="page"], 
+        [data-id="page"] ul {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            letter-spacing: 1px;
+        }
+        [data-id="page"] .arrow,
+        [data-id="page"] ul li {
+            padding: 5px;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+        [data-id="page"] .active {
+            border-radius: 50%;
+            background: #b0e8ff;
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .circle {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+        }
+        .circle.good {
+            background: green;
+        }
+        .circle.bad {
+            background: red;
+        }
+    </style>
+</head>
+<body id="body">
+</body>
+<script>
+    const tableCustom = (tableItemObjectArray, columnDefineArray = [{label: "", value: "", render: () => {}, sortable: true, align: "left"}], insertElementId, option) => {
+        
+        const optionDefault = {
+            displayCheckColumn: true,
+            displayDetailColumn: true,
+            numberPerPage: 100,
+        }
+        option = {
+            ...optionDefault,
+            ...option
+        }
+
+        const tableCustomId = `tableCustomId_No${Math.floor(Math.random() * 10e5)}`
+        document.querySelector(`#${insertElementId}`).insertAdjacentHTML("afterbegin", `
+        <div id="tableCustom">
+
+            <div data-id="search">
+                <div data-id="searchBox">
+                    <input type="text" placeholder="검색어를 입력하세요." onkeypress="if(event.keyCode == 13) void(0);">
+                    <button type="button">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="18px" height="18px" fill="#777">
+                            <path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div data-id="tableWrap">
+
+                <table>
+                    <colgroup>
+                        ${option.displayCheckColumn ? `<col width="80px">` : ``}
+
+                        ${columnDefineArray.map((item, index) => {
+                            return `
+                            <col 
+                                width="${item.width ? (/[0-9]$/.test(item.width) ? item.width + "px" : item.width) : "*"}" 
+                            >`
+                        }).join("")}
+
+                        ${option.displayDetailColumn ? `<col width="80px">` : ``}
+                    </colgroup>
+                    <thead>
+                        <tr role="row">
+                            ${option.displayCheckColumn ? `<td></td>` : ``}
+
+                            ${columnDefineArray.map((item, index) => {
+                                return `
+                                    <td 
+                                    data-sort="${item.sortable === undefined ? true : item.sortable}"
+                                    data-align="${item.align || "left"}" 
+                                    >${item.label}</td>
+                                `
+                            }).join("")}
+
+                            ${option.displayDetailColumn ? `<td>상세</td>` : ``}
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        ${tableItemObjectArray.map(item => {
+
+                            return `<tr>
+                                ${option.displayCheckColumn ? `
+                                <td>
+                                    <input type="checkbox" id="checkboxA">
+                                    <label for="checkboxA"></label>
+                                </td>` : ``}
+
+                                ${columnDefineArray.map((_item, index) => {
+                                    return `<td data-align="${_item.align || "left"}">${_item.render?.(item) || item[_item.value]}</td>`
+                                }).join("")}
+
+                                ${option.displayDetailColumn ? `
+                                <td>
+                                    <button type="button" title="상세보기">
+                                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#777">
+                                        <path d="M80-200v-80h400v80H80Zm0-200v-80h200v80H80Zm0-200v-80h200v80H80Zm744 400L670-354q-24 17-52.5 25.5T560-320q-83 0-141.5-58.5T360-520q0-83 58.5-141.5T560-720q83 0 141.5 58.5T760-520q0 29-8.5 57.5T726-410l154 154-56 56ZM560-400q50 0 85-35t35-85q0-50-35-85t-85-35q-50 0-85 35t-35 85q0 50 35 85t85 35Z"/>
+                                    </svg>
+                                    </button>
+                                </td>` : ``}
+                            </tr>`
+                        }).join("")}
+                    </tbody>
+                </table>
+            </div>
+
+            <div data-id="bottom">
+                <span data-id="total">총 <span>${tableItemObjectArray.length.toLocaleString()}</span> 개</span>
+                <div data-id="page">
+                    <div class="arrow" data-id="left">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 -960 960 960" fill="#aaa">
+                            <path d="M560-240 320-480l240-240 56 56-184 184 184 184-56 56Z"/>
+                        </svg>
+                    </div>
+
+                    <ul>
+                        <li>1</li>
+                        <li>...</li>
+                        <li>5</li>
+                        <li class="active">6</li>
+                        <li>7</li>
+                        <li>...</li>
+                        <li>123</li>
+                    </ul>
+
+                    <div class="arrow" data-id="right">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 -960 960 960" fill="#aaa">
+                            <path d="M504-480 320-664l56-56 240 240-240 240-56-56 184-184Z"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        `)
+
+        document.head.insertAdjacentHTML("beforeend", `<style>
+        </style>`)
+
+        const setPagination = () => {
+            const maxPage = tableItemObjectArray / option.numberPerPage
+        }
+
+    }
+
+    tableCustom(
+        Array(1234).fill().map((_, index) => ({a: index + "번", b: index * 10, c: index * 11, d: index % 2 ? "true" : "false"})), 
+    [
+        {label: "이름", value: "a"},
+        {label: "데이터 A", value: "b"},
+        {label: "데이터 B", value: "c"},
+        {label: "데이터 C", value: "d", render: item => `<div class="circle ${item.d === "true" ? "good" : "bad"}"></div>`, sortable: false, align: "center"},
+    ], "body", {
+    })
+</script>
+</html>
