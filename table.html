@@ -37,55 +37,57 @@
         }
 
         [data-id="tableWrap"] {
-            height: 400px;
-            overflow-y: auto;
-            
             border-top: 1px solid #333;
-            border-bottom: 2px solid #ccc;
-        }
-        [data-id="tableWrap"] thead {
-            position: sticky;
-            top: 0;
-            z-index: 1;
-            background: #fff;
-            box-shadow: inset 0 -1px 0 #ccc;
-        }
-
-        table {
-            width: 100%;
-            /* border-top: 1px solid #333;
-            border-bottom: 2px solid #ccc; */
-            border-collapse: collapse;
+            border-bottom: 1px solid #ccc;
             color: #333;
         }
-        table tr td {
+        [data-id="tableWrap"] > .rowWrap {
+            display: flex;
+            flex-direction: column;
+        }
+        [data-id="tableWrap"] > .rowWrap .row {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+            width: 100%;
+        }
+        [data-id="tableWrap"] > .rowWrap .row.hide {display: none;}
+        [data-id="tableWrap"] > .rowWrap .row li {
+            width: 100%;
+        }
+        [data-id="tableWrap"] > .rowWrap .row:nth-child(even) {
+            background-color: #fcfcfc;
+        }
+        [data-id="tableWrap"] li {
             padding: 12px;
         }
-        table [data-align="center"] {
+        [data-id="tableWrap"] [data-align="center"] {
             text-align: center;
         }
-        table [data-align="center"] > * {
+        [data-id="tableWrap"] [data-align="center"] > * {
             margin: 0 auto;
         }
-        table [data-align="right"] {
+        [data-id="tableWrap"] [data-align="right"] {
             text-align: right;
         }
-        table thead {
+        [data-id="tableWrap"] > .rowWrap[data-id="head"] .row {
             border-bottom: 1px solid #ccc;
         }
-        table thead td {
+        [data-id="head"] li {
             position: relative;
         }
-        table thead td[data-sort="true"] {
+        [data-id="head"] li[data-sort="true"] {
             cursor: pointer;
         }
-        table thead td[data-sort="true"]::after {
+        [data-id="head"] li[data-sort="true"]::after {
             content: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 -960 960 960" fill="%23aaa"><path d="M320-440v-287L217-624l-57-56 200-200 200 200-57 56-103-103v287h-80ZM600-80 400-280l57-56 103 103v-287h80v287l103-103 57 56L600-80Z"/></svg>');
             margin-left: 10px;
             position: absolute;
             opacity: .7;
         }
-        table thead td:not(:last-child)::before {
+        [data-id="head"] li:not(:last-child)::before {
             content: "";
             width: 1px;
             height: 60%;
@@ -94,29 +96,14 @@
             right: 5px;
             bottom: 20%;
         }
-
-        /* tbody {
-            height: 500px;
-            overflow-y: scroll;
-            display: block;
-        }
-        tbody tr {
-            display: table-row;
-        }
-        tbody td {
-            display: table-cell;
-        } */
-
-        table tbody tr {
-            border-bottom: 1px solid #eee;
-        }
-        table tbody tr:nth-child(even) {
-            background-color: #fcfcfc;
-        }
-        table button[title="상세보기"] {
+        [data-id="tableWrap"] button[title="상세보기"] {
             border: 0;
             background: 0;
             cursor: pointer;
+        }
+        [data-id="body"] {
+            height: 400px;
+            overflow-y: auto;
         }
 
         [data-id="search"] {
@@ -150,6 +137,7 @@
             background: none;
             position: absolute;
             right: 10px;
+            cursor: pointer;
         }
 
         input[type="checkbox"] {
@@ -169,6 +157,9 @@
         input[type="checkbox"]:checked + label::after {
             content:'✔';
             color: deepskyblue;
+        }
+        .row:has(input[type="checkbox"]:checked) {
+            background: #b0e8ff !important;
         }
 
         [data-id="bottom"] {
@@ -202,7 +193,20 @@
             color: #fff;
             font-weight: bold;
         }
+        [data-id="page"] .arrow.hide {
+            opacity: .5;
+            pointer-events: none;
+        }
+        .emptyResult {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
 
+
+        /* 미포함 */
         .circle {
             width: 20px;
             height: 20px;
@@ -224,7 +228,11 @@
         const optionDefault = {
             displayCheckColumn: true,
             displayDetailColumn: true,
-            numberPerPage: 100,
+            numberPerPage: 10,
+            allDataLength: 0,
+            getListAPI: () => {},
+            emptyResult: "검색 결과가 없습니다.",
+            wideSelectArea: true,
         }
         option = {
             ...optionDefault,
@@ -232,12 +240,15 @@
         }
 
         const tableCustomId = `tableCustomId_No${Math.floor(Math.random() * 10e5)}`
-        document.querySelector(`#${insertElementId}`).insertAdjacentHTML("afterbegin", `
+        document.head.insertAdjacentHTML("beforeend", `<style>
+        </style>`)
+        const tableCustomWrap = document.querySelector(`#${insertElementId}`)
+        tableCustomWrap.insertAdjacentHTML("afterbegin", `
         <div id="tableCustom">
 
             <div data-id="search">
                 <div data-id="searchBox">
-                    <input type="text" placeholder="검색어를 입력하세요." onkeypress="if(event.keyCode == 13) void(0);">
+                    <input type="text" placeholder="검색어를 입력하세요.">
                     <button type="button">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="18px" height="18px" fill="#777">
                             <path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/>
@@ -248,66 +259,54 @@
 
             <div data-id="tableWrap">
 
-                <table>
-                    <colgroup>
-                        ${option.displayCheckColumn ? `<col width="80px">` : ``}
+                <div class="rowWrap" data-id="head">
+                    <ul class="row">
+                        ${option.displayCheckColumn ? `<li style="width: 80px; flex-shrink: 0;" data-align="center"></li>` : ``}
 
-                        ${columnDefineArray.map((item, index) => {
-                            return `
-                            <col 
-                                width="${item.width ? (/[0-9]$/.test(item.width) ? item.width + "px" : item.width) : "*"}" 
-                            >`
-                        }).join("")}
+                        ${columnDefineArray.map((item, index) => `
+                            <li 
+                                data-sort="${item.sortable === undefined ? true : item.sortable}"
+                                data-align="${item.align || "left"}" 
+                                style="width: ${item.width ? (/[0-9]$/.test(item.width) ? item.width + "px" : item.width) + "; flex-shrink: 0;" : "100%"}"
+                            >${item.label}</li>
+                            `
+                        ).join("")}
 
-                        ${option.displayDetailColumn ? `<col width="80px">` : ``}
-                    </colgroup>
-                    <thead>
-                        <tr role="row">
-                            ${option.displayCheckColumn ? `<td></td>` : ``}
+                        ${option.displayDetailColumn ? `<li style="width: 80px; flex-shrink: 0;" data-align="center">상세</li>` : ``}
+                    </ul>
+                </div>
 
-                            ${columnDefineArray.map((item, index) => {
-                                return `
-                                    <td 
-                                    data-sort="${item.sortable === undefined ? true : item.sortable}"
-                                    data-align="${item.align || "left"}" 
-                                    >${item.label}</td>
-                                `
-                            }).join("")}
+                <div class="rowWrap" data-id="body">
+${""
+                    // ${tableItemObjectArray.map((item, index) => `<ul class="row">
+                    //     ${option.displayCheckColumn ? `
+                    //     <li style="width: 80px; flex-shrink: 0;" data-align="center">
+                    //         <input type="checkbox" id="checkBox_No${index}" title="체크박스">
+                    //         <label for="checkBox_No${index}"></label>
+                    //     </li>` : ``}
 
-                            ${option.displayDetailColumn ? `<td>상세</td>` : ``}
-                        </tr>
-                    </thead>
+                    //     ${columnDefineArray.map((_item, index) => `
+                    //         <li data-align="${_item.align || "left"}"
+                    //             style="width: ${_item.width ? (/[0-9]$/.test(_item.width) ? _item.width + "px" : _item.width) + "; flex-shrink: 0;" : "100%"}"
+                    //         >${_item.render?.(item) || item[_item.value]}</li>`
+                    //     ).join("")}
 
-                    <tbody>
-                        ${tableItemObjectArray.map(item => {
+                    //     ${option.displayDetailColumn ? `
+                    //     <li style="width: 80px; flex-shrink: 0;" data-align="center">
+                    //         <button type="button" title="상세보기">
+                    //         <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#777">
+                    //             <path d="M80-200v-80h400v80H80Zm0-200v-80h200v80H80Zm0-200v-80h200v80H80Zm744 400L670-354q-24 17-52.5 25.5T560-320q-83 0-141.5-58.5T360-520q0-83 58.5-141.5T560-720q83 0 141.5 58.5T760-520q0 29-8.5 57.5T726-410l154 154-56 56ZM560-400q50 0 85-35t35-85q0-50-35-85t-85-35q-50 0-85 35t-35 85q0 50 35 85t85 35Z"/>
+                    //         </svg>
+                    //         </button>
+                    //     </li>` : ``}
+                    // </ul>`).join("")}
+                    }
+                </div>
 
-                            return `<tr>
-                                ${option.displayCheckColumn ? `
-                                <td>
-                                    <input type="checkbox" id="checkboxA">
-                                    <label for="checkboxA"></label>
-                                </td>` : ``}
-
-                                ${columnDefineArray.map((_item, index) => {
-                                    return `<td data-align="${_item.align || "left"}">${_item.render?.(item) || item[_item.value]}</td>`
-                                }).join("")}
-
-                                ${option.displayDetailColumn ? `
-                                <td>
-                                    <button type="button" title="상세보기">
-                                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#777">
-                                        <path d="M80-200v-80h400v80H80Zm0-200v-80h200v80H80Zm0-200v-80h200v80H80Zm744 400L670-354q-24 17-52.5 25.5T560-320q-83 0-141.5-58.5T360-520q0-83 58.5-141.5T560-720q83 0 141.5 58.5T760-520q0 29-8.5 57.5T726-410l154 154-56 56ZM560-400q50 0 85-35t35-85q0-50-35-85t-85-35q-50 0-85 35t-35 85q0 50 35 85t85 35Z"/>
-                                    </svg>
-                                    </button>
-                                </td>` : ``}
-                            </tr>`
-                        }).join("")}
-                    </tbody>
-                </table>
             </div>
 
             <div data-id="bottom">
-                <span data-id="total">총 <span>${tableItemObjectArray.length.toLocaleString()}</span> 개</span>
+                <span data-id="total">총 <span>${(option.allDataLength || tableItemObjectArray.length).toLocaleString()}</span> 개</span>
                 <div data-id="page">
                     <div class="arrow" data-id="left">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 -960 960 960" fill="#aaa">
@@ -315,14 +314,7 @@
                         </svg>
                     </div>
 
-                    <ul>
-                        <li>1</li>
-                        <li>...</li>
-                        <li>5</li>
-                        <li class="active">6</li>
-                        <li>7</li>
-                        <li>...</li>
-                        <li>123</li>
+                    <ul data-id="pageItem">
                     </ul>
 
                     <div class="arrow" data-id="right">
@@ -336,23 +328,140 @@
         </div>
         `)
 
-        document.head.insertAdjacentHTML("beforeend", `<style>
-        </style>`)
+        const setBody = (fetchItemObjectArray) => {
+            tableCustomWrap.querySelectorAll(`[data-id="body"] *`).forEach(element => element.remove())
+            tableCustomWrap.querySelector(`[data-id="body"]`).insertAdjacentHTML("afterbegin", !fetchItemObjectArray?.length 
+            ? `<div class="emptyResult">${option.emptyResult}</div>` 
+            : `
+                ${fetchItemObjectArray.map((item, index) => `<ul class="row">
+                    ${option.displayCheckColumn ? `
+                    <li style="width: 80px; flex-shrink: 0;" data-align="center">
+                        <input type="checkbox" id="checkBox_No${index}" title="체크박스">
+                        <label for="checkBox_No${index}"></label>
+                    </li>` : ``}
 
-        const setPagination = () => {
-            const maxPage = tableItemObjectArray / option.numberPerPage
+                    ${columnDefineArray.map((_item, index) => `
+                        <li data-align="${_item.align || "left"}"
+                            style="width: ${_item.width ? (/[0-9]$/.test(_item.width) ? _item.width + "px" : _item.width) + "; flex-shrink: 0;" : "100%"}"
+                        >${_item.render?.(item) || item[_item.value]}</li>`
+                    ).join("")}
+
+                    ${option.displayDetailColumn ? `
+                    <li style="width: 80px; flex-shrink: 0;" data-align="center">
+                        <button type="button" title="상세보기">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#777">
+                            <path d="M80-200v-80h400v80H80Zm0-200v-80h200v80H80Zm0-200v-80h200v80H80Zm744 400L670-354q-24 17-52.5 25.5T560-320q-83 0-141.5-58.5T360-520q0-83 58.5-141.5T560-720q83 0 141.5 58.5T760-520q0 29-8.5 57.5T726-410l154 154-56 56ZM560-400q50 0 85-35t35-85q0-50-35-85t-85-35q-50 0-85 35t-35 85q0 50 35 85t85 35Z"/>
+                        </svg>
+                        </button>
+                    </li>` : ``}
+                </ul>`).join("")}
+            `)
+            
+            if(option.wideSelectArea)
+            tableCustomWrap.querySelectorAll(`[data-id="body"] .row`).forEach(element => element.addEventListener("click", () => {
+                element.querySelector(`input[type="checkbox"]`).checked ^= 1
+            }))
+        }
+        setBody(tableItemObjectArray)
+
+        const tableCustom = document.querySelector("#tableCustom")
+        let nowIndex = 0
+
+        const fetchData = index => {
+            nowIndex = index
+            tableCustom.querySelectorAll(`[data-id="pageItem"] li`).forEach(element => element.classList[element.textContent * 1 - 1 == index ? "add" : "remove"]("active"))
+            setPagination()
+            setPaginationArrow()
+            getListAPI(index, option.numberPerPage).then(data => setBody(data.data))
         }
 
+        tableCustom.querySelectorAll(`.arrow`).forEach(element => 
+        element.addEventListener("click", () => fetchData(element.dataset.id == "left" ? nowIndex - 1 : nowIndex + 1)))
+
+        const minIndex = 0
+        const maxIndex = Math.ceil((option.allDataLength || tableItemObjectArray.length) / option.numberPerPage) - 1
+        const setPaginationArrow = (index = 0) => {
+            tableCustom.querySelectorAll(`.arrow`).forEach(element => element.classList.remove("hide"))
+            if(!(index || nowIndex)) tableCustom.querySelector(`[data-id="left"]`).classList.add("hide")
+            else if((index || nowIndex) == maxIndex) tableCustom.querySelector(`[data-id="right"]`).classList.add("hide")
+        }
+        setPaginationArrow()
+
+        const setPagination = () => {
+            tableCustom.querySelectorAll(`[data-id="pageItem"] *`).forEach(element => element.remove())
+            const getPaginationHtml = () => {
+                if(maxIndex > 9) {
+                    if(nowIndex < 4)
+                    return Array(5).fill().map((_, index) => `
+                        <li class="${index == nowIndex ? "active" : ""}">${index + 1}</li>
+                    `).join("") + `<li>...</li><li>${maxIndex + 1}</li>`
+
+                    else if(maxIndex - nowIndex < 4)
+                    return `<li>${minIndex + 1}</li><li>...</li>` + Array(5).fill().map((_, index) => {
+                        const newIndex = maxIndex + index - 4
+                        return `
+                            <li class="${newIndex == nowIndex ? "active" : ""}">${newIndex + 1}</li>
+                    `}).join("")
+
+                    else return `<li>${minIndex + 1}</li><li>...</li>` + 
+                    Array(3).fill().map((_, index) => `
+                        <li class="${index == 1 ? "active" : ""}">${index + nowIndex}</li>
+                    `).join("")
+                    + `<li>...</li><li>${maxIndex + 1}</li>`
+                } else return Array(maxIndex + 1).fill().map((_, index) => `
+                        <li class="${index == nowIndex ? "active" : ""}">${index + 1}</li>
+                    `).join("")
+            }
+            tableCustom.querySelector(`[data-id="pageItem"]`).insertAdjacentHTML("afterbegin", getPaginationHtml())
+            tableCustom.querySelectorAll(`[data-id="pageItem"] li`).forEach(element => element.addEventListener("click", () => {
+                if(element.textContent != "...") fetchData(element.textContent * 1 - 1)
+            }))
+        }
+        setPagination()
+
+        const searchBox = tableCustom.querySelector(`[data-id="searchBox"]`)
+        searchBox.querySelector(`input[type="text"]`).addEventListener("keypress", event => {
+            if(event.keyCode == 13) searchData()
+        })
+        searchBox.querySelector(`button`).addEventListener("click", () => searchData())
+        const searchData = () => {
+            const searchValue = searchBox.querySelector(`input[type="text"]`).value
+            tableCustom.querySelectorAll(`[data-id="body"] .row`).forEach(element => {
+                element.classList.add("hide")
+                element.querySelectorAll(`li`).forEach(_element => {
+                    if(_element.textContent.includes(searchValue)) element.classList.remove("hide")
+                })
+            })
+        }
+    }
+    
+    const randomName = (nth = 3) => {
+        const wordArray = "가나다라마바사아자차카타파하"
+        const word = wordArray[Math.floor(Math.random() * 14)]
+        return nth == 1 ? word : word + randomName(nth - 1)
     }
 
-    tableCustom(
-        Array(1234).fill().map((_, index) => ({a: index + "번", b: index * 10, c: index * 11, d: index % 2 ? "true" : "false"})), 
-    [
-        {label: "이름", value: "a"},
-        {label: "데이터 A", value: "b"},
-        {label: "데이터 B", value: "c"},
-        {label: "데이터 C", value: "d", render: item => `<div class="circle ${item.d === "true" ? "good" : "bad"}"></div>`, sortable: false, align: "center"},
-    ], "body", {
+    const numberPerPage = 20
+    const getListAPI = (nowIndex, numberPerPage) => Promise.resolve({
+        dataLength: 105,
+        data: Array(numberPerPage).fill().map((_, _index) => {
+            const index = nowIndex * numberPerPage + _index
+            return {a: "No." + `${index}`.padStart(3 ,0), b: randomName(), c: index * 10, d: index % 2 ? true : false}
+        })
     })
+
+    const getList = (index = 0) => getListAPI(index, numberPerPage).then(data => 
+        tableCustom(data.data, [
+            {label: "번호", value: "a"},
+            {label: "String 데이터", value: "b"},
+            {label: "Integer 데이터", value: "c"},
+            {label: "Boolean 데이터", value: "d", render: item => `<div class="circle ${item.d ? "good" : "bad"}"></div>`, sortable: false, align: "center"},
+        ], "body", {
+            allDataLength: data.dataLength,
+            getListAPI: getListAPI
+        })
+    )
+
+    getList()
 </script>
 </html>
