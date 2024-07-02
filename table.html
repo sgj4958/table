@@ -87,6 +87,12 @@
             position: absolute;
             opacity: .7;
         }
+        [data-id="head"] li[data-sort="true"][data-order="1"]::after {
+            content: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 -960 960 960" fill="%23aaa"><path d="M440-800v487L216-537l-56 57 320 320 320-320-56-57-224 224v-487h-80Z"/></svg>');
+        }
+        [data-id="head"] li[data-sort="true"][data-order="2"]::after {
+            content: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 -960 960 960" fill="%23aaa"><path d="M440-160v-487L216-423l-56-57 320-320 320 320-56 57-224-224v487h-80Z"/></svg>');
+        }
         [data-id="head"] li:not(:last-child)::before {
             content: "";
             width: 1px;
@@ -197,7 +203,7 @@
             opacity: .5;
             pointer-events: none;
         }
-        .emptyResult {
+        .specialLabel {
             width: 100%;
             height: 100%;
             display: flex;
@@ -231,7 +237,8 @@
             numberPerPage: 10,
             allDataLength: 0,
             getListAPI: () => {},
-            emptyResult: "검색 결과가 없습니다.",
+            emptyResultLabel: "검색 결과가 없습니다.",
+            searchingLabel: "검색 중입니다...",
             wideSelectArea: true,
         }
         option = {
@@ -277,6 +284,7 @@
                 </div>
 
                 <div class="rowWrap" data-id="body">
+                    <div class="specialLabel">${option.searchingLabel}</div>
 ${""
                     // ${tableItemObjectArray.map((item, index) => `<ul class="row">
                     //     ${option.displayCheckColumn ? `
@@ -331,7 +339,7 @@ ${""
         const setBody = (fetchItemObjectArray) => {
             tableCustomWrap.querySelectorAll(`[data-id="body"] *`).forEach(element => element.remove())
             tableCustomWrap.querySelector(`[data-id="body"]`).insertAdjacentHTML("afterbegin", !fetchItemObjectArray?.length 
-            ? `<div class="emptyResult">${option.emptyResult}</div>` 
+            ? `<div class="specialLabel">${option.emptyResultLabel}</div>` 
             : `
                 ${fetchItemObjectArray.map((item, index) => `<ul class="row">
                     ${option.displayCheckColumn ? `
@@ -372,7 +380,10 @@ ${""
             tableCustom.querySelectorAll(`[data-id="pageItem"] li`).forEach(element => element.classList[element.textContent * 1 - 1 == index ? "add" : "remove"]("active"))
             setPagination()
             setPaginationArrow()
-            getListAPI(index, option.numberPerPage).then(data => setBody(data.data))
+            getListAPI(index, option.numberPerPage).then(data => {
+                tableItemObjectArray = data.data
+                setBody(data.data)
+            })
         }
 
         tableCustom.querySelectorAll(`.arrow`).forEach(element => 
@@ -433,8 +444,29 @@ ${""
                 })
             })
         }
+
+        tableCustom.querySelectorAll(`[data-id="head"] li`).forEach((element, index) => element.addEventListener("click", () => {
+            const key = columnDefineArray.find(item => item.label == element.textContent)?.value
+            element.dataset.order |= 0
+            if(element.dataset.sort != "true") return
+            else if(!key) return
+            else if(element.dataset.order == 0) element.dataset.order = 1
+            else if(element.dataset.order == 1) element.dataset.order = 2
+            else element.dataset.order = 0
+
+            setBody(Array.from(tableItemObjectArray).sort((a, b) => {
+                if(typeof a[key] == "number") {
+                    return element.dataset.order == 1 
+                    ? a[key] - b[key]
+                    : (element.dataset.order == 2 ? b[key] - a[key] : null)
+                } else {
+                    return element.dataset.order == 1 
+                    ? String(a[key]).localeCompare( String(b[key]) ) 
+                    : (element.dataset.order == 2 ? String(b[key]).localeCompare( String(a[key]) ) : null)
+                }
+            }))
+        }))
     }
-    
     const randomName = (nth = 3) => {
         const wordArray = "가나다라마바사아자차카타파하"
         const word = wordArray[Math.floor(Math.random() * 14)]
