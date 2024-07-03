@@ -234,12 +234,16 @@
         const optionDefault = {
             displayCheckColumn: true,
             displayDetailColumn: true,
-            numberPerPage: 10,
+            detailClickEvent: () => {},
+            numberPerPage: 20,
             allDataLength: 0,
             getListAPI: () => {},
             emptyResultLabel: "검색 결과가 없습니다.",
             searchingLabel: "검색 중입니다...",
             wideSelectArea: true,
+            multipleSelect: true,
+            rowClickEvent: () => {},
+            serverSideUrl: null,
         }
         option = {
             ...optionDefault,
@@ -314,7 +318,7 @@ ${""
             </div>
 
             <div data-id="bottom">
-                <span data-id="total">총 <span>${(option.allDataLength || tableItemObjectArray.length).toLocaleString()}</span> 개</span>
+                <span data-id="total">총 <span>${(option.allDataLength || tableItemObjectArray?.length)?.toLocaleString()}</span> 개</span>
                 <div data-id="page">
                     <div class="arrow" data-id="left">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 -960 960 960" fill="#aaa">
@@ -341,9 +345,9 @@ ${""
             tableCustomWrap.querySelector(`[data-id="body"]`).insertAdjacentHTML("afterbegin", !fetchItemObjectArray?.length 
             ? `<div class="specialLabel">${option.emptyResultLabel}</div>` 
             : `
-                ${fetchItemObjectArray.map((item, index) => `<ul class="row">
+                ${fetchItemObjectArray.map((item, index) => `<ul class="row" data-index="${index}" data-item='${JSON.stringify(item)}'>
                     ${option.displayCheckColumn ? `
-                    <li style="width: 80px; flex-shrink: 0;" data-align="center">
+                    <li style="width: 80px; flex-shrink: 0;" data-align="center" data-id="tableCheck">
                         <input type="checkbox" id="checkBox_No${index}" title="체크박스">
                         <label for="checkBox_No${index}"></label>
                     </li>` : ``}
@@ -355,49 +359,47 @@ ${""
                     ).join("")}
 
                     ${option.displayDetailColumn ? `
-                    <li style="width: 80px; flex-shrink: 0;" data-align="center">
+                    <li style="width: 80px; flex-shrink: 0;" data-align="center" data-id="tableDetail">
                         <button type="button" title="상세보기">
-                        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#777">
-                            <path d="M80-200v-80h400v80H80Zm0-200v-80h200v80H80Zm0-200v-80h200v80H80Zm744 400L670-354q-24 17-52.5 25.5T560-320q-83 0-141.5-58.5T360-520q0-83 58.5-141.5T560-720q83 0 141.5 58.5T760-520q0 29-8.5 57.5T726-410l154 154-56 56ZM560-400q50 0 85-35t35-85q0-50-35-85t-85-35q-50 0-85 35t-35 85q0 50 35 85t85 35Z"/>
-                        </svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#777">
+                                <path d="M80-200v-80h400v80H80Zm0-200v-80h200v80H80Zm0-200v-80h200v80H80Zm744 400L670-354q-24 17-52.5 25.5T560-320q-83 0-141.5-58.5T360-520q0-83 58.5-141.5T560-720q83 0 141.5 58.5T760-520q0 29-8.5 57.5T726-410l154 154-56 56ZM560-400q50 0 85-35t35-85q0-50-35-85t-85-35q-50 0-85 35t-35 85q0 50 35 85t85 35Z"/>
+                            </svg>
                         </button>
                     </li>` : ``}
                 </ul>`).join("")}
             `)
             
-            if(option.wideSelectArea)
-            tableCustomWrap.querySelectorAll(`[data-id="body"] .row`).forEach(element => element.addEventListener("click", () => {
-                element.querySelector(`input[type="checkbox"]`).checked ^= 1
+            tableCustomWrap.querySelectorAll(`[data-id="body"] .row`).forEach((element, index) => element.addEventListener("click", event => {
+                if(!option.multipleSelect) 
+                tableCustomWrap.querySelectorAll(`[data-id="body"] .row [data-id="tableCheck"] input[type="checkbox"]`).forEach(_element => {
+                    if(event.currentTarget.querySelector(`[data-id="tableCheck"] input[type="checkbox"]`) != _element)
+                    _element.checked = false
+                })
+                
+                if(option.wideSelectArea)
+                element.querySelector(`[data-id="tableCheck"] input[type="checkbox"]`).checked ^= 1
+
+                const selectIndex = []
+                tableCustomWrap.querySelectorAll(`[data-id="body"] .row`).forEach((element, index) => {
+                    if(element.querySelector(`[data-id="tableCheck"] input[type="checkbox"]:checked`))
+                    selectIndex.push(index)
+                })
+                option.rowClickEvent(tableItemObjectArray.filter((_, index) => selectIndex.includes(index)))
+
+                if(event.target.closest(`[data-id="tableDetail"]`)) option.detailClickEvent(tableItemObjectArray[index])
             }))
         }
-        setBody(tableItemObjectArray)
+        // setBody(tableItemObjectArray)
 
         const tableCustom = document.querySelector("#tableCustom")
         let nowIndex = 0
-
-        const fetchData = index => {
-            nowIndex = index
-            tableCustom.querySelectorAll(`[data-id="pageItem"] li`).forEach(element => element.classList[element.textContent * 1 - 1 == index ? "add" : "remove"]("active"))
-            setPagination()
-            setPaginationArrow()
-            getListAPI(index, option.numberPerPage).then(data => {
-                tableItemObjectArray = data.data
-                setBody(data.data)
-            })
-        }
-
-        tableCustom.querySelectorAll(`.arrow`).forEach(element => 
-        element.addEventListener("click", () => fetchData(element.dataset.id == "left" ? nowIndex - 1 : nowIndex + 1)))
+        let searchValue = ""
+        let sort = 0
+        let sortField = ""
 
         const minIndex = 0
-        const maxIndex = Math.ceil((option.allDataLength || tableItemObjectArray.length) / option.numberPerPage) - 1
-        const setPaginationArrow = (index = 0) => {
-            tableCustom.querySelectorAll(`.arrow`).forEach(element => element.classList.remove("hide"))
-            if(!(index || nowIndex)) tableCustom.querySelector(`[data-id="left"]`).classList.add("hide")
-            else if((index || nowIndex) == maxIndex) tableCustom.querySelector(`[data-id="right"]`).classList.add("hide")
-        }
-        setPaginationArrow()
-
+        let maxIndex = 0
+    
         const setPagination = () => {
             tableCustom.querySelectorAll(`[data-id="pageItem"] *`).forEach(element => element.remove())
             const getPaginationHtml = () => {
@@ -427,8 +429,84 @@ ${""
             tableCustom.querySelectorAll(`[data-id="pageItem"] li`).forEach(element => element.addEventListener("click", () => {
                 if(element.textContent != "...") fetchData(element.textContent * 1 - 1)
             }))
+        
+            // setPaginationArrow
+            tableCustom.querySelectorAll(`.arrow`).forEach(element => element.classList.remove("hide"))
+            if(!nowIndex) tableCustom.querySelector(`[data-id="left"]`).classList.add("hide")
+            else if(nowIndex == maxIndex) tableCustom.querySelector(`[data-id="right"]`).classList.add("hide")
         }
-        setPagination()
+
+        const fetchData = (index = 0) => {
+            nowIndex = index
+            tableCustom.querySelectorAll(`[data-id="pageItem"] li`)
+            .forEach(element => element.classList[element.textContent * 1 - 1 == index ? "add" : "remove"]("active"))
+            // setPagination()
+            // setPaginationArrow()
+            // getListAPI(index, option.numberPerPage).then(data => {
+            //     tableItemObjectArray = data.data
+            //     setBody(data.data)
+            // })
+            
+            fetch(option.serverSideUrl + "?" + new URLSearchParams({
+                index : index, 
+                numberPerPage : option.numberPerPage,
+                searchField : "", 
+                search : searchValue, 
+                sortField : sortField, 
+                sort : sort,
+            })).then(response => response.json())
+            .then(data => {
+                const dataLength = option.allDataLength || data.allDataLength || data.data?.length
+                tableCustom.querySelector(`[data-id="total"] span`).textContent = dataLength
+                tableItemObjectArray = data?.data || []
+                setBody(data.data)
+                maxIndex = (Math.ceil(dataLength / option.numberPerPage) - 1) || 0
+                setPagination()
+            })
+        }
+        fetchData()
+
+        tableCustom.querySelectorAll(`.arrow`).forEach(element => 
+        element.addEventListener("click", () => fetchData(element.dataset.id == "left" ? nowIndex - 1 : nowIndex + 1)))
+
+        // const setPaginationArrow = (index = 0) => {
+        //     tableCustom.querySelectorAll(`.arrow`).forEach(element => element.classList.remove("hide"))
+        //     if(!(index || nowIndex)) tableCustom.querySelector(`[data-id="left"]`).classList.add("hide")
+        //     else if((index || nowIndex) == maxIndex) tableCustom.querySelector(`[data-id="right"]`).classList.add("hide")
+        // }
+        // setPaginationArrow()
+
+        // const setPagination = () => {
+        //     tableCustom.querySelectorAll(`[data-id="pageItem"] *`).forEach(element => element.remove())
+        //     const getPaginationHtml = () => {
+        //         if(maxIndex > 9) {
+        //             if(nowIndex < 4)
+        //             return Array(5).fill().map((_, index) => `
+        //                 <li class="${index == nowIndex ? "active" : ""}">${index + 1}</li>
+        //             `).join("") + `<li>...</li><li>${maxIndex + 1}</li>`
+
+        //             else if(maxIndex - nowIndex < 4)
+        //             return `<li>${minIndex + 1}</li><li>...</li>` + Array(5).fill().map((_, index) => {
+        //                 const newIndex = maxIndex + index - 4
+        //                 return `
+        //                     <li class="${newIndex == nowIndex ? "active" : ""}">${newIndex + 1}</li>
+        //             `}).join("")
+
+        //             else return `<li>${minIndex + 1}</li><li>...</li>` + 
+        //             Array(3).fill().map((_, index) => `
+        //                 <li class="${index == 1 ? "active" : ""}">${index + nowIndex}</li>
+        //             `).join("")
+        //             + `<li>...</li><li>${maxIndex + 1}</li>`
+        //         } else return Array(maxIndex + 1).fill().map((_, index) => `
+        //                 <li class="${index == nowIndex ? "active" : ""}">${index + 1}</li>
+        //             `).join("")
+        //     }
+        //     tableCustom.querySelector(`[data-id="pageItem"]`).insertAdjacentHTML("afterbegin", getPaginationHtml())
+        //     tableCustom.querySelectorAll(`[data-id="pageItem"] li`).forEach(element => element.addEventListener("click", () => {
+        //         if(element.textContent != "...") fetchData(element.textContent * 1 - 1)
+        //     }))
+        // }
+        // setPagination()
 
         const searchBox = tableCustom.querySelector(`[data-id="searchBox"]`)
         searchBox.querySelector(`input[type="text"]`).addEventListener("keypress", event => {
@@ -436,13 +514,21 @@ ${""
         })
         searchBox.querySelector(`button`).addEventListener("click", () => searchData())
         const searchData = () => {
-            const searchValue = searchBox.querySelector(`input[type="text"]`).value
-            tableCustom.querySelectorAll(`[data-id="body"] .row`).forEach(element => {
-                element.classList.add("hide")
-                element.querySelectorAll(`li`).forEach(_element => {
-                    if(_element.textContent.includes(searchValue)) element.classList.remove("hide")
-                })
-            })
+            searchValue = searchBox.querySelector(`input[type="text"]`).value
+            // tableCustom.querySelectorAll(`[data-id="body"] .row`).forEach(element => {
+            //     element.classList.add("hide")
+            //     element.querySelectorAll(`li`).forEach(_element => {
+            //         if(_element.textContent.includes(searchValue)) element.classList.remove("hide")
+            //     })
+            // })
+            
+            if(option.serverSideUrl) {
+                fetchData() 
+            } else
+            setBody(tableItemObjectArray.filter(item => {
+                for(const key in item) if(String(item[key]).includes(searchValue)) return true
+                return false
+            }))
         }
 
         tableCustom.querySelectorAll(`[data-id="head"] li`).forEach((element, index) => element.addEventListener("click", () => {
@@ -454,6 +540,15 @@ ${""
             else if(element.dataset.order == 1) element.dataset.order = 2
             else element.dataset.order = 0
 
+            tableCustom.querySelectorAll(`[data-id="head"] li`).forEach(_element => {
+                if(element != _element) _element.dataset.order = 0
+            })
+
+            if(option.serverSideUrl) {
+                sortField = key
+                sort = element.dataset.order == 1 ? "ASC" : element.dataset.order == 2 ? "DESC" : ""
+                fetchData()
+            } else
             setBody(Array.from(tableItemObjectArray).sort((a, b) => {
                 if(typeof a[key] == "number") {
                     return element.dataset.order == 1 
@@ -490,10 +585,30 @@ ${""
             {label: "Boolean 데이터", value: "d", render: item => `<div class="circle ${item.d ? "good" : "bad"}"></div>`, sortable: false, align: "center"},
         ], "body", {
             allDataLength: data.dataLength,
-            getListAPI: getListAPI
+            getListAPI: getListAPI,
+            multipleSelect: true,
+            wideSelectArea: false,
+            detailClickEvent: data => console.info("detailClickEvent", data),
+            rowClickEvent: data => console.info("rowClickEvent", data),
+            serverSideUrl: "http://localhost:9999",
         })
     )
 
-    getList()
+    // getList()
+    tableCustom(null, [
+            {label: "번호", value: "a"},
+            {label: "String 데이터", value: "b"},
+            {label: "Integer 데이터", value: "c"},
+            {label: "Boolean 데이터", value: "d", render: item => `<div class="circle ${item.d ? "good" : "bad"}"></div>`, sortable: false, align: "center"},
+        ], "body", {
+            allDataLength: 0,
+            // getListAPI: getListAPI,
+            multipleSelect: true,
+            wideSelectArea: true,
+            detailClickEvent: data => console.info("detailClickEvent", data),
+            rowClickEvent: data => console.info("rowClickEvent", data),
+            serverSideUrl: "http://localhost:9999",
+        })
+    
 </script>
 </html>
