@@ -229,7 +229,7 @@
 <body id="body">
 </body>
 <script>
-    const tableCustom = (tableItemObjectArray, columnDefineArray = [{label: "", value: "", render: () => {}, sortable: true, align: "left"}], insertElementId, option) => {
+    const tableCustom = (columnDefineArray = [{label: "", value: "", render: () => {}, sortable: true, align: "left"}], insertElementId, option) => {
         
         const optionDefault = {
             displayCheckColumn: true,
@@ -237,18 +237,21 @@
             detailClickEvent: () => {},
             numberPerPage: 20,
             allDataLength: 0,
-            getListAPI: () => {},
+            // getListAPI: () => {},
             emptyResultLabel: "검색 결과가 없습니다.",
             searchingLabel: "검색 중입니다...",
             wideSelectArea: true,
             multipleSelect: true,
             rowClickEvent: () => {},
             serverSideUrl: null,
+            frontSideData: null,
         }
         option = {
             ...optionDefault,
             ...option
         }
+        
+        let tableItemObjectArray = option.frontSideData || []
 
         const tableCustomId = `tableCustomId_No${Math.floor(Math.random() * 10e5)}`
         document.head.insertAdjacentHTML("beforeend", `<style>
@@ -436,6 +439,11 @@ ${""
             else if(nowIndex == maxIndex) tableCustom.querySelector(`[data-id="right"]`).classList.add("hide")
         }
 
+        const setTotal = dataLength => {
+            tableCustom.querySelector(`[data-id="total"] span`).textContent = dataLength
+            maxIndex = (Math.ceil(dataLength / option.numberPerPage) - 1) || 0
+        }
+
         const fetchData = (index = 0) => {
             nowIndex = index
             tableCustom.querySelectorAll(`[data-id="pageItem"] li`)
@@ -447,7 +455,8 @@ ${""
             //     setBody(data.data)
             // })
             
-            fetch(option.serverSideUrl + "?" + new URLSearchParams({
+            if(option.serverSideUrl)
+            fetch(new URL(option.serverSideUrl) + "?" + new URLSearchParams({
                 index : index, 
                 numberPerPage : option.numberPerPage,
                 searchField : "", 
@@ -456,13 +465,55 @@ ${""
                 sort : sort,
             })).then(response => response.json())
             .then(data => {
-                const dataLength = option.allDataLength || data.allDataLength || data.data?.length
-                tableCustom.querySelector(`[data-id="total"] span`).textContent = dataLength
+                // const dataLength = option.allDataLength || data.allDataLength || data.data?.length
+                // tableCustom.querySelector(`[data-id="total"] span`).textContent = dataLength
+                setTotal(option.allDataLength || data.allDataLength || data.data?.length)
                 tableItemObjectArray = data?.data || []
                 setBody(data.data)
-                maxIndex = (Math.ceil(dataLength / option.numberPerPage) - 1) || 0
+                // maxIndex = (Math.ceil(dataLength / option.numberPerPage) - 1) || 0
                 setPagination()
             })
+
+            else {
+                const DB = tableItemObjectArray
+                const searchField = null
+                const filterData = DB.filter(item => {
+                    if(!searchValue) return true
+                    if(searchField) {
+                        if(String(item[searchField]).includes(searchValue)) return true
+                        return false
+                    } else {
+                        for(const key in item) if(String(item[key]).includes(searchValue)) return true
+                        return false
+                    }
+                })
+
+                const setSort = (data) => {
+                    if(!sortField) return data
+                    const key = sortField
+                    return data.sort((a, b) => {
+                        if(typeof a[key] == "number") {
+                            return sort == "ASC" 
+                            ? a[key] - b[key]
+                            : (sort == "DESC" ? b[key] - a[key] : null)
+                        } else {
+                            return sort == "ASC"  
+                            ? String(a[key]).localeCompare( String(b[key]) ) 
+                            : (sort == "DESC" ? String(b[key]).localeCompare( String(a[key]) ) : null)
+                        }
+                    })
+                }
+                
+                const sortData = setSort(filterData)
+                const sliceData = sortData.slice(index * option.numberPerPage, index * option.numberPerPage + option.numberPerPage)
+                
+                // const dataLength = search ? filterData.length : DB.length
+                // tableCustom.querySelector(`[data-id="total"] span`).textContent = dataLength
+                // maxIndex = (Math.ceil(dataLength / option.numberPerPage) - 1) || 0
+                setTotal(searchValue ? filterData.length : DB.length)
+                setBody(sliceData)
+                setPagination()
+            }
         }
         fetchData()
 
@@ -522,13 +573,14 @@ ${""
             //     })
             // })
             
-            if(option.serverSideUrl) {
-                fetchData() 
-            } else
-            setBody(tableItemObjectArray.filter(item => {
-                for(const key in item) if(String(item[key]).includes(searchValue)) return true
-                return false
-            }))
+            // if(option.serverSideUrl) {
+            //     fetchData() 
+            // } else
+            // setBody(tableItemObjectArray.filter(item => {
+            //     for(const key in item) if(String(item[key]).includes(searchValue)) return true
+            //     return false
+            // }))
+            fetchData() 
         }
 
         tableCustom.querySelectorAll(`[data-id="head"] li`).forEach((element, index) => element.addEventListener("click", () => {
@@ -544,22 +596,27 @@ ${""
                 if(element != _element) _element.dataset.order = 0
             })
 
-            if(option.serverSideUrl) {
-                sortField = key
-                sort = element.dataset.order == 1 ? "ASC" : element.dataset.order == 2 ? "DESC" : ""
-                fetchData()
-            } else
-            setBody(Array.from(tableItemObjectArray).sort((a, b) => {
-                if(typeof a[key] == "number") {
-                    return element.dataset.order == 1 
-                    ? a[key] - b[key]
-                    : (element.dataset.order == 2 ? b[key] - a[key] : null)
-                } else {
-                    return element.dataset.order == 1 
-                    ? String(a[key]).localeCompare( String(b[key]) ) 
-                    : (element.dataset.order == 2 ? String(b[key]).localeCompare( String(a[key]) ) : null)
-                }
-            }))
+            // if(option.serverSideUrl) {
+            //     sortField = key
+            //     sort = element.dataset.order == 1 ? "ASC" : element.dataset.order == 2 ? "DESC" : ""
+            //     fetchData()
+            // } else
+            // setBody(Array.from(tableItemObjectArray).sort((a, b) => {
+            //     if(typeof a[key] == "number") {
+            //         return element.dataset.order == 1 
+            //         ? a[key] - b[key]
+            //         : (element.dataset.order == 2 ? b[key] - a[key] : null)
+            //     } else {
+            //         return element.dataset.order == 1 
+            //         ? String(a[key]).localeCompare( String(b[key]) ) 
+            //         : (element.dataset.order == 2 ? String(b[key]).localeCompare( String(a[key]) ) : null)
+            //     }
+            // }))
+            
+            sortField = key
+            sort = element.dataset.order == 1 ? "ASC" : element.dataset.order == 2 ? "DESC" : ""
+            fetchData()
+
         }))
     }
     const randomName = (nth = 3) => {
@@ -594,21 +651,37 @@ ${""
         })
     )
 
-    // getList()
-    tableCustom(null, [
-            {label: "번호", value: "a"},
-            {label: "String 데이터", value: "b"},
-            {label: "Integer 데이터", value: "c"},
-            {label: "Boolean 데이터", value: "d", render: item => `<div class="circle ${item.d ? "good" : "bad"}"></div>`, sortable: false, align: "center"},
-        ], "body", {
-            allDataLength: 0,
-            // getListAPI: getListAPI,
-            multipleSelect: true,
-            wideSelectArea: true,
-            detailClickEvent: data => console.info("detailClickEvent", data),
-            rowClickEvent: data => console.info("rowClickEvent", data),
-            serverSideUrl: "http://localhost:9999",
+    const columnDef = [
+        {label: "번호", value: "a"},
+        {label: "String 데이터", value: "b"},
+        {label: "Integer 데이터", value: "c"},
+        {label: "Boolean 데이터", value: "d", render: item => `<div class="circle ${item.d ? "good" : "bad"}"></div>`, sortable: false, align: "center"},
+    ]
+
+    // 서버사이드
+    const createServerSideTable = () =>
+    tableCustom(columnDef, "body", {
+        allDataLength: 0,
+        // getListAPI: getListAPI,
+        multipleSelect: true,
+        wideSelectArea: true,
+        detailClickEvent: data => console.info("detailClickEvent", data),
+        rowClickEvent: data => console.info("rowClickEvent", data),
+        serverSideUrl: "http://localhost:9999",
+    })
+
+    // 프론트사이드
+    const createFrontSideTable = () =>
+    fetch("http://localhost:9999?" + new URLSearchParams({
+        index: 0,
+        numberPerPage : 1000,
+    })).then(response => response.json())
+    .then(data => {
+        tableCustom(columnDef, "body", {
+            frontSideData: data.data
         })
+    })
     
+    createFrontSideTable()
 </script>
 </html>
