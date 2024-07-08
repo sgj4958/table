@@ -118,7 +118,7 @@
             align-items: center;
             margin-bottom: 5px;
             gap: 5px;
-            width: 400px;
+            width: 100%;
             height: 35px;
         }
         [data-id="searchBox"] {
@@ -161,7 +161,7 @@
             margin: 0 auto;
         }
         input[type="checkbox"]:checked + label::after {
-            content:'✔';
+            content: "✔";
             color: deepskyblue;
         }
         .row:has(input[type="checkbox"]:checked) {
@@ -210,6 +210,26 @@
             justify-content: center;
             align-items: center;
         }
+        [data-id="excel"] {
+            height: 100%;
+            flex-shrink: 0;
+        }
+        [data-id="excel"] button {
+            cursor: pointer;
+            height: 100%;
+            border: 1px solid #ccc;
+            color: #555;
+            background: none;
+            border-radius: 5px;
+            padding: 0 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+        }
+        /* [data-id="excel"] img {
+            width: 20px;
+        } */
 
 
         /* 미포함 */
@@ -245,6 +265,7 @@
             rowClickEvent: () => {},
             serverSideUrl: null,
             frontSideData: null,
+            excelName: "excel - " + new Date().toLocaleString()
         }
         option = {
             ...optionDefault,
@@ -252,6 +273,14 @@
         }
         
         let tableItemObjectArray = option.frontSideData || []
+        let nowData = []
+
+        
+        const pageLabel = "tableCustomIndex"
+        const getPageItem = item => {
+            const data = sessionStorage[pageLabel]
+            return data ? JSON.parse(data)[item] : undefined
+        }
 
         const tableCustomId = `tableCustomId_No${Math.floor(Math.random() * 10e5)}`
         document.head.insertAdjacentHTML("beforeend", `<style>
@@ -263,10 +292,20 @@
             <div data-id="search">
                 <div data-id="searchBox">
                     <input type="text" placeholder="검색어를 입력하세요.">
-                    <button type="button">
+                    <button type="button" title="검색">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="18px" height="18px" fill="#777">
                             <path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/>
                         </svg>
+                    </button>
+                </div>
+
+                <div data-id="excel">
+                    <button type="button" title="엑셀 다운로드">
+                        <!-- <img src="Microsoft_Office_Excel_(2019–present).svg" title="엑셀 아이콘"> -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 -960 960 960" fill="#107C41">
+                            <path d="M480-320 280-520l56-58 104 104v-326h80v326l104-104 56 58-200 200ZM240-160q-33 0-56.5-23.5T160-240v-120h80v120h480v-120h80v120q0 33-23.5 56.5T720-160H240Z"/>
+                        </svg>
+                        <span>엑셀 다운로드</span>
                     </button>
                 </div>
             </div>
@@ -281,6 +320,7 @@
                             <li 
                                 data-sort="${item.sortable === undefined ? true : item.sortable}"
                                 data-align="${item.align || "left"}" 
+                                data-order="${getPageItem("sortField") == item.value ? (getPageItem("sort") == "ASC" ? 1 : (getPageItem("sort") == "DESC" ? 2 : 0)) : 0}"
                                 style="width: ${item.width ? (/[0-9]$/.test(item.width) ? item.width + "px" : item.width) + "; flex-shrink: 0;" : "100%"}"
                             >${item.label}</li>
                             `
@@ -321,7 +361,7 @@ ${""
             </div>
 
             <div data-id="bottom">
-                <span data-id="total">총 <span>${(option.allDataLength || tableItemObjectArray?.length)?.toLocaleString()}</span> 개</span>
+                <span data-id="total">총 <span>-</span> 개</span>
                 <div data-id="page">
                     <div class="arrow" data-id="left">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 -960 960 960" fill="#aaa">
@@ -343,12 +383,12 @@ ${""
         </div>
         `)
 
-        const setBody = (fetchItemObjectArray) => {
+        const setBody = (fetchItemObjectArray, scroll) => {
             tableCustomWrap.querySelectorAll(`[data-id="body"] *`).forEach(element => element.remove())
             tableCustomWrap.querySelector(`[data-id="body"]`).insertAdjacentHTML("afterbegin", !fetchItemObjectArray?.length 
             ? `<div class="specialLabel">${option.emptyResultLabel}</div>` 
             : `
-                ${fetchItemObjectArray.map((item, index) => `<ul class="row" data-index="${index}" data-item='${JSON.stringify(item)}'>
+                ${fetchItemObjectArray.map((item, index) => `<ul class="row">
                     ${option.displayCheckColumn ? `
                     <li style="width: 80px; flex-shrink: 0;" data-align="center" data-id="tableCheck">
                         <input type="checkbox" id="checkBox_No${index}" title="체크박스">
@@ -387,10 +427,14 @@ ${""
                     if(element.querySelector(`[data-id="tableCheck"] input[type="checkbox"]:checked`))
                     selectIndex.push(index)
                 })
-                option.rowClickEvent(tableItemObjectArray.filter((_, index) => selectIndex.includes(index)))
+                option.rowClickEvent(nowData.filter((_, index) => selectIndex.includes(index)))
 
-                if(event.target.closest(`[data-id="tableDetail"]`)) option.detailClickEvent(tableItemObjectArray[index])
+                if(event.target.closest(`[data-id="tableDetail"]`)) option.detailClickEvent(nowData[index])
+
+                savePage()
             }))
+
+            tableCustom.querySelector(`[data-id="body"]`).scrollTo(0, scroll)
         }
         // setBody(tableItemObjectArray)
 
@@ -402,6 +446,30 @@ ${""
 
         const minIndex = 0
         let maxIndex = 0
+
+        const savePage = () => {
+            sessionStorage[pageLabel] = JSON.stringify({
+                index: nowIndex,
+                searchField : "", 
+                searchValue: searchValue,
+                sort: sort,
+                sortField: sortField,
+                scroll: tableCustom.querySelector(`[data-id="body"]`).scrollTop
+            })
+        }
+        const getPage = () => {
+            // navigation.canGoForward
+            const data = sessionStorage[pageLabel]
+            if(!data) return {}
+            const page = JSON.parse(data)
+            searchValue = page.searchValue || ""
+            sort = page.sort || 0
+            sortField = page.sortField || ""
+            
+            sessionStorage.removeItem(pageLabel)
+            return {index: page.index, scroll: page.scroll}
+        }
+        const pageData = getPage()
     
         const setPagination = () => {
             tableCustom.querySelectorAll(`[data-id="pageItem"] *`).forEach(element => element.remove())
@@ -430,7 +498,10 @@ ${""
             }
             tableCustom.querySelector(`[data-id="pageItem"]`).insertAdjacentHTML("afterbegin", getPaginationHtml())
             tableCustom.querySelectorAll(`[data-id="pageItem"] li`).forEach(element => element.addEventListener("click", () => {
-                if(element.textContent != "...") fetchData(element.textContent * 1 - 1)
+                if(element.textContent == "...") return
+                const index = element.textContent * 1 - 1
+                fetchData(index)
+                // setIndex(index)
             }))
         
             // setPaginationArrow
@@ -440,42 +511,26 @@ ${""
         }
 
         const setTotal = dataLength => {
-            tableCustom.querySelector(`[data-id="total"] span`).textContent = dataLength
+            tableCustom.querySelector(`[data-id="total"] span`).textContent = dataLength.toLocaleString()
             maxIndex = (Math.ceil(dataLength / option.numberPerPage) - 1) || 0
         }
 
-        const fetchData = (index = 0) => {
-            nowIndex = index
-            tableCustom.querySelectorAll(`[data-id="pageItem"] li`)
-            .forEach(element => element.classList[element.textContent * 1 - 1 == index ? "add" : "remove"]("active"))
-            // setPagination()
-            // setPaginationArrow()
-            // getListAPI(index, option.numberPerPage).then(data => {
-            //     tableItemObjectArray = data.data
-            //     setBody(data.data)
-            // })
-            
+        const fetchDataAPI = (index = 0, numberPerPage) => {
+            numberPerPage |= option.numberPerPage
+
             if(option.serverSideUrl)
-            fetch(new URL(option.serverSideUrl) + "?" + new URLSearchParams({
+            return fetch(new URL(option.serverSideUrl) + "?" + new URLSearchParams({
                 index : index, 
-                numberPerPage : option.numberPerPage,
+                numberPerPage : numberPerPage,
                 searchField : "", 
                 search : searchValue, 
                 sortField : sortField, 
                 sort : sort,
             })).then(response => response.json())
-            .then(data => {
-                // const dataLength = option.allDataLength || data.allDataLength || data.data?.length
-                // tableCustom.querySelector(`[data-id="total"] span`).textContent = dataLength
-                setTotal(option.allDataLength || data.allDataLength || data.data?.length)
-                tableItemObjectArray = data?.data || []
-                setBody(data.data)
-                // maxIndex = (Math.ceil(dataLength / option.numberPerPage) - 1) || 0
-                setPagination()
-            })
+            .then(data => data)
 
             else {
-                const DB = tableItemObjectArray
+                const DB = option.frontSideData
                 const searchField = null
                 const filterData = DB.filter(item => {
                     if(!searchValue) return true
@@ -488,7 +543,7 @@ ${""
                     }
                 })
 
-                const setSort = (data) => {
+                const setSort = data => {
                     if(!sortField) return data
                     const key = sortField
                     return data.sort((a, b) => {
@@ -505,17 +560,89 @@ ${""
                 }
                 
                 const sortData = setSort(filterData)
-                const sliceData = sortData.slice(index * option.numberPerPage, index * option.numberPerPage + option.numberPerPage)
+                const sliceData = sortData.slice(index * numberPerPage, index * numberPerPage + numberPerPage)
                 
-                // const dataLength = search ? filterData.length : DB.length
-                // tableCustom.querySelector(`[data-id="total"] span`).textContent = dataLength
-                // maxIndex = (Math.ceil(dataLength / option.numberPerPage) - 1) || 0
-                setTotal(searchValue ? filterData.length : DB.length)
-                setBody(sliceData)
-                setPagination()
+                return Promise.resolve({
+                    allDataLength: searchValue ? filterData.length : DB.length,
+                    data: sliceData
+                })
             }
         }
-        fetchData()
+
+        const fetchData = (index = 0, scroll) => {
+            nowIndex = index
+            tableCustom.querySelectorAll(`[data-id="pageItem"] li`)
+            .forEach(element => element.classList[element.textContent * 1 - 1 == index ? "add" : "remove"]("active"))
+            // setPagination()
+            // setPaginationArrow()
+            // getListAPI(index, option.numberPerPage).then(data => {
+            //     tableItemObjectArray = data.data
+            //     setBody(data.data)
+            // })
+
+            fetchDataAPI(index).then(data => {
+                // if(option.serverSideUrl) tableItemObjectArray = data?.data || []
+                nowData = data.data || []
+                setTotal(option.allDataLength || data.allDataLength || data.data?.length)
+                setBody(data.data, scroll)
+                setPagination()
+            })
+            
+            // if(option.serverSideUrl)
+            // fetch(new URL(option.serverSideUrl) + "?" + new URLSearchParams({
+            //     index : index, 
+            //     numberPerPage : option.numberPerPage,
+            //     searchField : "", 
+            //     search : searchValue, 
+            //     sortField : sortField, 
+            //     sort : sort,
+            // })).then(response => response.json())
+            // .then(data => {
+            //     setTotal(option.allDataLength || data.allDataLength || data.data?.length)
+            //     tableItemObjectArray = data?.data || []
+            //     setBody(data.data)
+            //     setPagination()
+            // })
+
+            // else {
+            //     const DB = tableItemObjectArray
+            //     const searchField = null
+            //     const filterData = DB.filter(item => {
+            //         if(!searchValue) return true
+            //         if(searchField) {
+            //             if(String(item[searchField]).includes(searchValue)) return true
+            //             return false
+            //         } else {
+            //             for(const key in item) if(String(item[key]).includes(searchValue)) return true
+            //             return false
+            //         }
+            //     })
+
+            //     const setSort = (data) => {
+            //         if(!sortField) return data
+            //         const key = sortField
+            //         return data.sort((a, b) => {
+            //             if(typeof a[key] == "number") {
+            //                 return sort == "ASC" 
+            //                 ? a[key] - b[key]
+            //                 : (sort == "DESC" ? b[key] - a[key] : null)
+            //             } else {
+            //                 return sort == "ASC"  
+            //                 ? String(a[key]).localeCompare( String(b[key]) ) 
+            //                 : (sort == "DESC" ? String(b[key]).localeCompare( String(a[key]) ) : null)
+            //             }
+            //         })
+            //     }
+                
+            //     const sortData = setSort(filterData)
+            //     const sliceData = sortData.slice(index * option.numberPerPage, index * option.numberPerPage + option.numberPerPage)
+                
+            //     setTotal(searchValue ? filterData.length : DB.length)
+            //     setBody(sliceData)
+            //     setPagination()
+            // }
+        }
+        fetchData(pageData.index, pageData.scroll)
 
         tableCustom.querySelectorAll(`.arrow`).forEach(element => 
         element.addEventListener("click", () => fetchData(element.dataset.id == "left" ? nowIndex - 1 : nowIndex + 1)))
@@ -580,12 +707,14 @@ ${""
             //     for(const key in item) if(String(item[key]).includes(searchValue)) return true
             //     return false
             // }))
-            fetchData() 
+            fetchData()
+            // setIndex()
         }
 
         tableCustom.querySelectorAll(`[data-id="head"] li`).forEach((element, index) => element.addEventListener("click", () => {
             const key = columnDefineArray.find(item => item.label == element.textContent)?.value
             element.dataset.order |= 0
+            console.log('element.dataset.order',element.dataset.order)
             if(element.dataset.sort != "true") return
             else if(!key) return
             else if(element.dataset.order == 0) element.dataset.order = 1
@@ -616,40 +745,115 @@ ${""
             sortField = key
             sort = element.dataset.order == 1 ? "ASC" : element.dataset.order == 2 ? "DESC" : ""
             fetchData()
-
+            // setIndex()
         }))
-    }
-    const randomName = (nth = 3) => {
-        const wordArray = "가나다라마바사아자차카타파하"
-        const word = wordArray[Math.floor(Math.random() * 14)]
-        return nth == 1 ? word : word + randomName(nth - 1)
+
+        const createTableHtml = data => `
+            <table>
+                <colgroup>
+                    ${columnDefineArray.map((item, index) => `
+                        <col width="${item.width ? (/[0-9]$/.test(item.width) ? item.width + "px" : item.width) : "*"}">
+                    `).join("")}
+                </colgroup>
+
+                <thead>
+                    <tr role="row">
+                        ${columnDefineArray.map((item, index) => `
+                            <td align="${item.align || "left"}">${item.label}</td>
+                        `).join("")}
+                    </tr>
+                </thead>
+
+                <tbody>
+                    ${data.map(item => `
+                        <tr>
+                            ${columnDefineArray.map((_item, index) => `
+                                <td align="${_item.align || "left"}">${item[_item.value]}</td>
+                            `).join("")}
+                        </tr>
+                    `).join("")}
+                </tbody>
+            </table>
+        `
+
+        /**
+        * 엑셀 다운로드
+        * @param fileName 엑셀파일명
+        * @param content 시트내용
+        */
+        const excel = (fileName, content) => {
+            const file = `
+            <html xmlns:x="urn:schemas-microsoft-com:office:excel">
+                <head>
+                    <meta http-equiv="content-type" content="application/vnd.ms-excel; charset=UTF-8">
+                    <xml>
+                        <x:ExcelWorkbook>
+                            <x:ExcelWorksheets>
+                                <x:ExcelWorksheet>
+                                    <x:Name>Sheet</x:Name>
+                                    <x:WorksheetOptions>
+                                        <x:Panes></x:Panes>
+                                    </x:WorksheetOptions>
+                                </x:ExcelWorksheet>
+                            </x:ExcelWorksheets>
+                        </x:ExcelWorkbook>
+                    </xml>
+                </head>
+                <body>${content}</body>
+            </html>
+            `
+            
+            const a = document.createElement("a")
+            a.href = URL.createObjectURL(new Blob([file], {type: "application/csv;charset=utf-8;"}))
+            a.download = fileName + ".xls"
+            a.click()
+        }
+
+        // function tableToExcel(fileName, content) {
+        //     const a = document.createElement("a")
+        //     a.href = "data:application/vnd.ms-excel;charset=utf-8,%EF%BB%BF" + encodeURIComponent(content)
+        //     a.download = fileName + ".xls"
+        //     a.click()
+        // }
+
+        tableCustom.querySelector(`[data-id="excel"]`).addEventListener("click", () => {
+            fetchDataAPI(0, 10000).then(data => excel(option.excelName, createTableHtml(data.data)))
+            // excelDown("A", createTableHtml(tableItemObjectArray))
+            // tableToExcel("B", createTableHtml(tableItemObjectArray))
+        })
     }
 
-    const numberPerPage = 20
-    const getListAPI = (nowIndex, numberPerPage) => Promise.resolve({
-        dataLength: 105,
-        data: Array(numberPerPage).fill().map((_, _index) => {
-            const index = nowIndex * numberPerPage + _index
-            return {a: "No." + `${index}`.padStart(3 ,0), b: randomName(), c: index * 10, d: index % 2 ? true : false}
-        })
-    })
+    // const randomName = (nth = 3) => {
+    //     const wordArray = "가나다라마바사아자차카타파하"
+    //     const word = wordArray[Math.floor(Math.random() * 14)]
+    //     return nth == 1 ? word : word + randomName(nth - 1)
+    // }
 
-    const getList = (index = 0) => getListAPI(index, numberPerPage).then(data => 
-        tableCustom(data.data, [
-            {label: "번호", value: "a"},
-            {label: "String 데이터", value: "b"},
-            {label: "Integer 데이터", value: "c"},
-            {label: "Boolean 데이터", value: "d", render: item => `<div class="circle ${item.d ? "good" : "bad"}"></div>`, sortable: false, align: "center"},
-        ], "body", {
-            allDataLength: data.dataLength,
-            getListAPI: getListAPI,
-            multipleSelect: true,
-            wideSelectArea: false,
-            detailClickEvent: data => console.info("detailClickEvent", data),
-            rowClickEvent: data => console.info("rowClickEvent", data),
-            serverSideUrl: "http://localhost:9999",
-        })
-    )
+    // const numberPerPage = 20
+    // const getListAPI = (nowIndex, numberPerPage) => Promise.resolve({
+    //     dataLength: 105,
+    //     data: Array(numberPerPage).fill().map((_, _index) => {
+    //         const index = nowIndex * numberPerPage + _index
+    //         return {a: "No." + `${index}`.padStart(3 ,0), b: randomName(), c: index * 10, d: index % 2 ? true : false}
+    //     })
+    // })
+
+    // const getList = (index = 0) => getListAPI(index, numberPerPage).then(data => 
+    //     tableCustom(data.data, [
+    //         {label: "번호", value: "a"},
+    //         {label: "String 데이터", value: "b"},
+    //         {label: "Integer 데이터", value: "c"},
+    //         {label: "Boolean 데이터", value: "d", render: item => `<div class="circle ${item.d ? "good" : "bad"}"></div>`, sortable: false, align: "center"},
+    //     ], "body", {
+    //         allDataLength: data.dataLength,
+    //         getListAPI: getListAPI,
+    //         multipleSelect: true,
+    //         wideSelectArea: false,
+    //         detailClickEvent: data => console.info("detailClickEvent", data),
+    //         rowClickEvent: data => console.info("rowClickEvent", data),
+    //         serverSideUrl: "http://localhost:9999",
+    //     })
+    // )
 
     const columnDef = [
         {label: "번호", value: "a"},
@@ -661,11 +865,11 @@ ${""
     // 서버사이드
     const createServerSideTable = () =>
     tableCustom(columnDef, "body", {
-        allDataLength: 0,
+        // allDataLength: 0,
         // getListAPI: getListAPI,
         multipleSelect: true,
         wideSelectArea: true,
-        detailClickEvent: data => console.info("detailClickEvent", data),
+        detailClickEvent: data => location.href = "test.html",
         rowClickEvent: data => console.info("rowClickEvent", data),
         serverSideUrl: "http://localhost:9999",
     })
@@ -678,10 +882,13 @@ ${""
     })).then(response => response.json())
     .then(data => {
         tableCustom(columnDef, "body", {
-            frontSideData: data.data
+            frontSideData: data.data,
+            detailClickEvent: data => console.info("detailClickEvent", data),
+            rowClickEvent: data => console.info("rowClickEvent", data),
         })
     })
     
-    createFrontSideTable()
+    createServerSideTable()
+    // createFrontSideTable()
 </script>
 </html>
