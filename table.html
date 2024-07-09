@@ -20,216 +20,7 @@
             padding: 50px;
         }
 
-        #tableCustom {
-            width: 100%;
-            font-size: 14px;
-        }
-        #tableCustom *::-webkit-scrollbar {
-            width: 5px;
-        }
-        #tableCustom *::-webkit-scrollbar-thumb {
-            background-color: #aaa;
-            border-radius: 10px;
-            border: 2px solid transparent;
-        }
-        #tableCustom *::-webkit-scrollbar-track {
-            background-color: #eee;
-        }
-
-        [data-id="tableWrap"] {
-            border-top: 1px solid #333;
-            border-bottom: 1px solid #ccc;
-            color: #333;
-        }
-        [data-id="tableWrap"] > .rowWrap {
-            display: flex;
-            flex-direction: column;
-        }
-        [data-id="tableWrap"] > .rowWrap .row {
-            display: flex;
-            flex-direction: row;
-            justify-content: center;
-            align-items: center;
-            border-bottom: 1px solid #eee;
-            width: 100%;
-        }
-        [data-id="tableWrap"] > .rowWrap .row.hide {display: none;}
-        [data-id="tableWrap"] > .rowWrap .row li {
-            width: 100%;
-        }
-        [data-id="tableWrap"] > .rowWrap .row:nth-child(even) {
-            background-color: #fcfcfc;
-        }
-        [data-id="tableWrap"] li {
-            padding: 12px;
-        }
-        [data-id="tableWrap"] [data-align="center"] {
-            text-align: center;
-        }
-        [data-id="tableWrap"] [data-align="center"] > * {
-            margin: 0 auto;
-        }
-        [data-id="tableWrap"] [data-align="right"] {
-            text-align: right;
-        }
-        [data-id="tableWrap"] > .rowWrap[data-id="head"] .row {
-            border-bottom: 1px solid #ccc;
-        }
-        [data-id="head"] li {
-            position: relative;
-        }
-        [data-id="head"] li[data-sort="true"] {
-            cursor: pointer;
-        }
-        [data-id="head"] li[data-sort="true"]::after {
-            content: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 -960 960 960" fill="%23aaa"><path d="M320-440v-287L217-624l-57-56 200-200 200 200-57 56-103-103v287h-80ZM600-80 400-280l57-56 103 103v-287h80v287l103-103 57 56L600-80Z"/></svg>');
-            margin-left: 10px;
-            position: absolute;
-            opacity: .7;
-        }
-        [data-id="head"] li[data-sort="true"][data-order="1"]::after {
-            content: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 -960 960 960" fill="%23aaa"><path d="M440-800v487L216-537l-56 57 320 320 320-320-56-57-224 224v-487h-80Z"/></svg>');
-        }
-        [data-id="head"] li[data-sort="true"][data-order="2"]::after {
-            content: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 -960 960 960" fill="%23aaa"><path d="M440-160v-487L216-423l-56-57 320-320 320 320-56 57-224-224v487h-80Z"/></svg>');
-        }
-        [data-id="head"] li:not(:last-child)::before {
-            content: "";
-            width: 1px;
-            height: 60%;
-            border-right: 1px solid #eee;
-            position: absolute;
-            right: 5px;
-            bottom: 20%;
-        }
-        [data-id="tableWrap"] button[title="상세보기"] {
-            border: 0;
-            background: 0;
-            cursor: pointer;
-        }
-        [data-id="body"] {
-            height: 400px;
-            overflow-y: auto;
-        }
-
-        [data-id="search"] {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 5px;
-            gap: 5px;
-            width: 100%;
-            height: 35px;
-        }
-        [data-id="searchBox"] {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        [data-id="searchBox"] input[type="text"] {
-            width: 100%;
-            height: 100%;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            padding: 0 10px;
-            color: #555;
-            outline: 0;
-        }
-        [data-id="searchBox"] button {
-            border: 0;
-            background: none;
-            position: absolute;
-            right: 10px;
-            cursor: pointer;
-        }
-
-        input[type="checkbox"] {
-            display: none;
-        }
-        input[type="checkbox"] + label{
-            width: 15px;
-            height: 15px;
-            border: 1px solid #aaa;
-            position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border-radius: 2px;
-            margin: 0 auto;
-        }
-        input[type="checkbox"]:checked + label::after {
-            content: "✔";
-            color: deepskyblue;
-        }
-        .row:has(input[type="checkbox"]:checked) {
-            background: #b0e8ff !important;
-        }
-
-        [data-id="bottom"] {
-            margin-top: 10px;
-        }
-        [data-id="total"] span {
-            font-weight: bold;
-            font-size: larger;
-        }
-        [data-id="page"], 
-        [data-id="page"] ul {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 20px;
-            letter-spacing: 1px;
-        }
-        [data-id="page"] .arrow,
-        [data-id="page"] ul li {
-            padding: 5px;
-            width: 30px;
-            height: 30px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-        }
-        [data-id="page"] .active {
-            border-radius: 50%;
-            background: #b0e8ff;
-            color: #fff;
-            font-weight: bold;
-        }
-        [data-id="page"] .arrow.hide {
-            opacity: .5;
-            pointer-events: none;
-        }
-        .specialLabel {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        [data-id="excel"] {
-            height: 100%;
-            flex-shrink: 0;
-        }
-        [data-id="excel"] button {
-            cursor: pointer;
-            height: 100%;
-            border: 1px solid #ccc;
-            color: #555;
-            background: none;
-            border-radius: 5px;
-            padding: 0 10px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 5px;
-        }
-        /* [data-id="excel"] img {
-            width: 20px;
-        } */
+        
 
 
         /* 미포함 */
@@ -256,7 +47,7 @@
             displayDetailColumn: true,
             detailClickEvent: () => {},
             numberPerPage: 20,
-            allDataLength: 0,
+            // allDataLength: 0,
             // getListAPI: () => {},
             emptyResultLabel: "검색 결과가 없습니다.",
             searchingLabel: "검색 중입니다...",
@@ -265,17 +56,17 @@
             rowClickEvent: () => {},
             serverSideUrl: null,
             frontSideData: null,
-            excelName: "excel - " + new Date().toLocaleString()
+            excelName: "excel - " + new Date().toLocaleString(),
+            cellEditEvent: () => {},
         }
         option = {
             ...optionDefault,
             ...option
         }
         
-        let tableItemObjectArray = option.frontSideData || []
+        // let tableItemObjectArray = option.frontSideData || []
         let nowData = []
 
-        
         const pageLabel = "tableCustomIndex"
         const getPageItem = item => {
             const data = sessionStorage[pageLabel]
@@ -284,15 +75,238 @@
 
         const tableCustomId = `tableCustomId_No${Math.floor(Math.random() * 10e5)}`
         document.head.insertAdjacentHTML("beforeend", `<style>
+        #${tableCustomId} {
+            width: 100%;
+            font-size: 14px;
+        }
+        #${tableCustomId},
+        #${tableCustomId} * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            list-style: none;
+        }
+        #${tableCustomId} *::-webkit-scrollbar {
+            width: 5px;
+        }
+        #${tableCustomId} *::-webkit-scrollbar-thumb {
+            background-color: #aaa;
+            border-radius: 10px;
+            border: 2px solid transparent;
+        }
+        #${tableCustomId} *::-webkit-scrollbar-track {
+            background-color: #eee;
+        }
+
+        #${tableCustomId} [data-id="tableWrap"] {
+            border-top: 1px solid #333;
+            border-bottom: 1px solid #ccc;
+            color: #333;
+        }
+        #${tableCustomId} [data-id="tableWrap"] > .rowWrap {
+            display: flex;
+            flex-direction: column;
+        }
+        #${tableCustomId} [data-id="tableWrap"] > .rowWrap .row {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+            width: 100%;
+        }
+        #${tableCustomId} [data-id="tableWrap"] > .rowWrap .row.hide {display: none;}
+        #${tableCustomId} [data-id="tableWrap"] > .rowWrap .row li {
+            width: 100%;
+        }
+        #${tableCustomId} [data-id="tableWrap"] > .rowWrap .row:nth-child(even) {
+            background-color: #fcfcfc;
+        }
+        #${tableCustomId} [data-id="tableWrap"] li {
+            padding: 12px;
+        }
+        #${tableCustomId} [data-id="tableWrap"] [data-align="center"] {
+            text-align: center;
+        }
+        #${tableCustomId} [data-id="tableWrap"] [data-align="center"] > * {
+            margin: 0 auto;
+        }
+        #${tableCustomId} [data-id="tableWrap"] [data-align="right"] {
+            text-align: right;
+        }
+        #${tableCustomId} [data-id="tableWrap"] > .rowWrap[data-id="head"] .row {
+            border-bottom: 1px solid #ccc;
+        }
+        #${tableCustomId} [data-id="head"] li {
+            position: relative;
+        }
+        #${tableCustomId} [data-id="head"] li[data-sort="true"] {
+            cursor: pointer;
+        }
+        #${tableCustomId} [data-id="head"] li[data-sort="true"]::after {
+            content: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 -960 960 960" fill="%23aaa"><path d="M320-440v-287L217-624l-57-56 200-200 200 200-57 56-103-103v287h-80ZM600-80 400-280l57-56 103 103v-287h80v287l103-103 57 56L600-80Z"/></svg>');
+            margin-left: 10px;
+            position: absolute;
+            opacity: .7;
+        }
+        #${tableCustomId} [data-id="head"] li[data-sort="true"][data-order="1"]::after {
+            content: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 -960 960 960" fill="%23aaa"><path d="M440-800v487L216-537l-56 57 320 320 320-320-56-57-224 224v-487h-80Z"/></svg>');
+        }
+        #${tableCustomId} [data-id="head"] li[data-sort="true"][data-order="2"]::after {
+            content: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 -960 960 960" fill="%23aaa"><path d="M440-160v-487L216-423l-56-57 320-320 320 320-56 57-224-224v487h-80Z"/></svg>');
+        }
+        #${tableCustomId} [data-id="head"] li:not(:last-child)::before {
+            content: "";
+            width: 1px;
+            height: 60%;
+            border-right: 1px solid #eee;
+            position: absolute;
+            right: 0;
+            bottom: 20%;
+        }
+        #${tableCustomId} [data-id="tableWrap"] button[title="상세보기"] {
+            border: 0;
+            background: 0;
+            cursor: pointer;
+        }
+        #${tableCustomId} [data-id="body"] {
+            height: 400px;
+            overflow-y: auto;
+        }
+
+        #${tableCustomId} [data-id="search"] {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 5px;
+            gap: 5px;
+            width: 100%;
+            height: 35px;
+        }
+        #${tableCustomId} [data-id="search"] [data-id="searchBox"] {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #${tableCustomId} [data-id="search"] [data-id="searchBox"] [data-id="searchText"] {
+            width: 100%;
+            height: 100%;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            padding: 0 10px;
+            color: #555;
+            outline: 0;
+        }
+        #${tableCustomId} [data-id="search"] [data-id="searchBox"] [data-id="searchButton"] {
+            border: 0;
+            background: none;
+            position: absolute;
+            right: 10px;
+            cursor: pointer;
+        }
+
+        #${tableCustomId} [data-id="body"] [data-id="rowCheck"] {
+            display: none;
+        }
+        #${tableCustomId} [data-id="body"] [data-id="rowCheck"] + label {
+            width: 15px;
+            height: 15px;
+            border: 1px solid #aaa;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 2px;
+            margin: 0 auto;
+        }
+        #${tableCustomId} [data-id="body"] [data-id="rowCheck"]:checked + label::after {
+            content: "✔";
+            color: deepskyblue;
+        }
+        #${tableCustomId} [data-id="body"] .row:has([data-id="rowCheck"]:checked) {
+            background: #b0e8ff !important;
+        }
+
+        #${tableCustomId} [data-id="bottom"] {
+            margin-top: 10px;
+        }
+        #${tableCustomId} [data-id="total"] span {
+            font-weight: bold;
+            font-size: larger;
+        }
+        #${tableCustomId} [data-id="page"], 
+        #${tableCustomId} [data-id="page"] ul {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            letter-spacing: 1px;
+        }
+        #${tableCustomId} [data-id="page"] .arrow,
+        #${tableCustomId} [data-id="page"] ul li {
+            padding: 5px;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+        #${tableCustomId} [data-id="page"] .active {
+            border-radius: 50%;
+            background: #b0e8ff;
+            color: #fff;
+            font-weight: bold;
+        }
+        #${tableCustomId} [data-id="page"] .arrow.hide {
+            opacity: .5;
+            pointer-events: none;
+        }
+        #${tableCustomId} .specialLabel {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #${tableCustomId} [data-id="excel"] {
+            height: 100%;
+            flex-shrink: 0;
+        }
+        #${tableCustomId} [data-id="excel"] button {
+            cursor: pointer;
+            height: 100%;
+            border: 1px solid #ccc;
+            color: #555;
+            background: none;
+            border-radius: 5px;
+            padding: 0 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+        }
+        #${tableCustomId} [data-id="cellEditBox"] {
+            width: 100%;
+            height: 100%;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            padding: 5px 10px;
+            color: #555;
+            outline: 0;
+        }
         </style>`)
         const tableCustomWrap = document.querySelector(`#${insertElementId}`)
         tableCustomWrap.insertAdjacentHTML("afterbegin", `
-        <div id="tableCustom">
+        <div id="${tableCustomId}">
 
             <div data-id="search">
                 <div data-id="searchBox">
-                    <input type="text" placeholder="검색어를 입력하세요.">
-                    <button type="button" title="검색">
+                    <input type="text" placeholder="검색어를 입력하세요." data-id="searchText">
+                    <button type="button" title="검색" data-id="searchButton">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="18px" height="18px" fill="#777">
                             <path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/>
                         </svg>
@@ -314,7 +328,7 @@
 
                 <div class="rowWrap" data-id="head">
                     <ul class="row">
-                        ${option.displayCheckColumn ? `<li style="width: 80px; flex-shrink: 0;" data-align="center"></li>` : ``}
+                        ${option.displayCheckColumn ? `<li style="width: 40px; flex-shrink: 0;" data-align="center">&nbsp;</li>` : ``}
 
                         ${columnDefineArray.map((item, index) => `
                             <li 
@@ -333,7 +347,7 @@
                 <div class="rowWrap" data-id="body">
                     <div class="specialLabel">${option.searchingLabel}</div>
 ${""
-                    // ${tableItemObjectArray.map((item, index) => `<ul class="row">
+                    // tableItemObjectArray.map((item, index) => `<ul class="row">
                     //     ${option.displayCheckColumn ? `
                     //     <li style="width: 80px; flex-shrink: 0;" data-align="center">
                     //         <input type="checkbox" id="checkBox_No${index}" title="체크박스">
@@ -354,8 +368,8 @@ ${""
                     //         </svg>
                     //         </button>
                     //     </li>` : ``}
-                    // </ul>`).join("")}
-                    }
+                    // </ul>`).join("")
+}
                 </div>
 
             </div>
@@ -383,20 +397,24 @@ ${""
         </div>
         `)
 
+        const tableCustom = tableCustomWrap.querySelector(`#${tableCustomId}`)
+        const tableBody = tableCustom.querySelector(`[data-id="body"]`)
+
         const setBody = (fetchItemObjectArray, scroll) => {
-            tableCustomWrap.querySelectorAll(`[data-id="body"] *`).forEach(element => element.remove())
-            tableCustomWrap.querySelector(`[data-id="body"]`).insertAdjacentHTML("afterbegin", !fetchItemObjectArray?.length 
+            tableCustom.querySelectorAll(`[data-id="body"] *`).forEach(element => element.remove())
+            tableBody.insertAdjacentHTML("afterbegin", !fetchItemObjectArray?.length 
             ? `<div class="specialLabel">${option.emptyResultLabel}</div>` 
             : `
                 ${fetchItemObjectArray.map((item, index) => `<ul class="row">
                     ${option.displayCheckColumn ? `
-                    <li style="width: 80px; flex-shrink: 0;" data-align="center" data-id="tableCheck">
-                        <input type="checkbox" id="checkBox_No${index}" title="체크박스">
+                    <li style="width: 40px; flex-shrink: 0;" data-align="center" data-id="tableCheck">
+                        <input type="checkbox" data-id="rowCheck" id="checkBox_No${index}" title="체크박스">
                         <label for="checkBox_No${index}"></label>
                     </li>` : ``}
 
                     ${columnDefineArray.map((_item, index) => `
                         <li data-align="${_item.align || "left"}"
+                            data-editable="${item.editable === undefined ? true : item.editable}" 
                             style="width: ${_item.width ? (/[0-9]$/.test(_item.width) ? _item.width + "px" : _item.width) + "; flex-shrink: 0;" : "100%"}"
                         >${_item.render?.(item) || item[_item.value]}</li>`
                     ).join("")}
@@ -412,9 +430,9 @@ ${""
                 </ul>`).join("")}
             `)
             
-            tableCustomWrap.querySelectorAll(`[data-id="body"] .row`).forEach((element, index) => element.addEventListener("click", event => {
+            tableBody.querySelectorAll(`.row`).forEach((element, index) => element.addEventListener("click", event => {
                 if(!option.multipleSelect) 
-                tableCustomWrap.querySelectorAll(`[data-id="body"] .row [data-id="tableCheck"] input[type="checkbox"]`).forEach(_element => {
+                tableBody.querySelectorAll(`.row [data-id="tableCheck"] input[type="checkbox"]`).forEach(_element => {
                     if(event.currentTarget.querySelector(`[data-id="tableCheck"] input[type="checkbox"]`) != _element)
                     _element.checked = false
                 })
@@ -423,22 +441,37 @@ ${""
                 element.querySelector(`[data-id="tableCheck"] input[type="checkbox"]`).checked ^= 1
 
                 const selectIndex = []
-                tableCustomWrap.querySelectorAll(`[data-id="body"] .row`).forEach((element, index) => {
+                tableBody.querySelectorAll(`.row`).forEach((element, index) => {
                     if(element.querySelector(`[data-id="tableCheck"] input[type="checkbox"]:checked`))
                     selectIndex.push(index)
                 })
                 option.rowClickEvent(nowData.filter((_, index) => selectIndex.includes(index)))
 
-                if(event.target.closest(`[data-id="tableDetail"]`)) option.detailClickEvent(nowData[index])
+                if(event.target.closest(`[data-id="tableDetail"]`)) {
+                    savePage()
+                    option.detailClickEvent(nowData[index])
+                }
+                
+                element.querySelectorAll(`li`).forEach((element, _index) => element.addEventListener("dblclick", event => {
+                    if(element.dataset.editable != "true") return
 
-                savePage()
+                    const adjustIndex = option.displayCheckColumn ? _index - 1 : _index
+                    const adjustColumn = columnDefineArray[adjustIndex]
+                    element.innerHTML = `<input type="text" data-id="cellEditBox" value="${nowData[index][adjustColumn.value]}" autofocus>`
+                    const setEdit = value => {
+                        element.innerHTML = adjustColumn.render?.(value) || value
+                        nowData[index][adjustColumn.value] = value
+                        option.cellEditEvent(nowData[index])
+                    }
+                    element.querySelector(`[data-id="cellEditBox"]`).addEventListener("blur", event => setEdit(event.target.value))
+                    element.querySelector(`[data-id="cellEditBox"]`).addEventListener("keypress", event => event.keyCode == 13 && event.target.blur())
+                }))
             }))
 
-            tableCustom.querySelector(`[data-id="body"]`).scrollTo(0, scroll)
+            tableBody.scrollTo(0, scroll)
         }
         // setBody(tableItemObjectArray)
 
-        const tableCustom = document.querySelector("#tableCustom")
         let nowIndex = 0
         let searchValue = ""
         let sort = 0
@@ -454,7 +487,7 @@ ${""
                 searchValue: searchValue,
                 sort: sort,
                 sortField: sortField,
-                scroll: tableCustom.querySelector(`[data-id="body"]`).scrollTop
+                scroll: tableBody.scrollTop
             })
         }
         const getPage = () => {
@@ -501,7 +534,6 @@ ${""
                 if(element.textContent == "...") return
                 const index = element.textContent * 1 - 1
                 fetchData(index)
-                // setIndex(index)
             }))
         
             // setPaginationArrow
@@ -583,7 +615,7 @@ ${""
             fetchDataAPI(index).then(data => {
                 // if(option.serverSideUrl) tableItemObjectArray = data?.data || []
                 nowData = data.data || []
-                setTotal(option.allDataLength || data.allDataLength || data.data?.length)
+                setTotal(data.allDataLength || data.data?.length)
                 setBody(data.data, scroll)
                 setPagination()
             })
@@ -708,13 +740,11 @@ ${""
             //     return false
             // }))
             fetchData()
-            // setIndex()
         }
 
         tableCustom.querySelectorAll(`[data-id="head"] li`).forEach((element, index) => element.addEventListener("click", () => {
             const key = columnDefineArray.find(item => item.label == element.textContent)?.value
             element.dataset.order |= 0
-            console.log('element.dataset.order',element.dataset.order)
             if(element.dataset.sort != "true") return
             else if(!key) return
             else if(element.dataset.order == 0) element.dataset.order = 1
@@ -745,7 +775,6 @@ ${""
             sortField = key
             sort = element.dataset.order == 1 ? "ASC" : element.dataset.order == 2 ? "DESC" : ""
             fetchData()
-            // setIndex()
         }))
 
         const createTableHtml = data => `
@@ -818,8 +847,6 @@ ${""
 
         tableCustom.querySelector(`[data-id="excel"]`).addEventListener("click", () => {
             fetchDataAPI(0, 10000).then(data => excel(option.excelName, createTableHtml(data.data)))
-            // excelDown("A", createTableHtml(tableItemObjectArray))
-            // tableToExcel("B", createTableHtml(tableItemObjectArray))
         })
     }
 
@@ -872,6 +899,7 @@ ${""
         detailClickEvent: data => location.href = "test.html",
         rowClickEvent: data => console.info("rowClickEvent", data),
         serverSideUrl: "http://localhost:9999",
+        cellEditEvent: data => console.info("cellEditEvent", data),
     })
 
     // 프론트사이드
@@ -885,6 +913,7 @@ ${""
             frontSideData: data.data,
             detailClickEvent: data => console.info("detailClickEvent", data),
             rowClickEvent: data => console.info("rowClickEvent", data),
+            cellEditEvent: data => console.info("cellEditEvent", data),
         })
     })
     
