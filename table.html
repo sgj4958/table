@@ -41,7 +41,7 @@
 </body>
 <script>
     const tableCustom = (columnDefineArray = [{label: "", value: "", render: () => {}, sortable: true, align: "left"}], insertElementId, option) => {
-        
+
         const optionDefault = {
             displayCheckColumn: true,
             displayDetailColumn: true,
@@ -78,8 +78,8 @@
         #${tableCustomId} {
             width: 100%;
             font-size: 14px;
+            padding: 5px;
         }
-        #${tableCustomId},
         #${tableCustomId} * {
             margin: 0;
             padding: 0;
@@ -850,6 +850,8 @@ ${""
         })
     }
 
+    Element.prototype.tableCustom = function TableCustom(columnDef, option) {tableCustom(columnDef, this.id, option)}
+
     // const randomName = (nth = 3) => {
     //     const wordArray = "가나다라마바사아자차카타파하"
     //     const word = wordArray[Math.floor(Math.random() * 14)]
@@ -881,7 +883,7 @@ ${""
     //         serverSideUrl: "http://localhost:9999",
     //     })
     // )
-
+    
     const columnDef = [
         {label: "번호", value: "a"},
         {label: "String 데이터", value: "b"},
@@ -917,7 +919,13 @@ ${""
         })
     })
     
-    createServerSideTable()
+    // createServerSideTable()
     // createFrontSideTable()
+    document.querySelector("body").tableCustom(columnDef, {
+        serverSideUrl: "http://localhost:9999",
+        detailClickEvent: data => location.href = "test.html",
+        rowClickEvent: data => console.info("rowClickEvent", data),
+        cellEditEvent: data => console.info("cellEditEvent", data),
+    })
 </script>
 </html>
